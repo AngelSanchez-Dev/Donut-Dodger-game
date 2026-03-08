@@ -260,14 +260,14 @@ const LANES   = [90, 180, 270, 320]; // y positions (top of homer hitbox)
 const homer = {
   x: HOMER_X,
   y: H / 2 - 40,
-  w: 62, h: 72,
+  w: 68, h: 105,
   vy: 0,
   targetY: H / 2 - 40,
   moving: { up: false, down: false },
 };
 
 const HOMER_MIN_Y = 40;
-const HOMER_MAX_Y = H - 120;
+const HOMER_MAX_Y = H - 145;
 const HOMER_SPD   = 4.5;
 
 // Donuts
@@ -401,155 +401,378 @@ function renderLivesUI() {
 }
 
 // ══════════════════════════════════════════════
-//  DRAW HOMER (canvas art)
+//  DRAW HOMER (faithful canvas art)
 // ══════════════════════════════════════════════
 function drawHomer(x, y, flash) {
   ctx.save();
   ctx.translate(x, y);
 
   if (flash && Math.floor(Date.now() / 80) % 2 === 0) {
-    ctx.globalAlpha = 0.35;
+    ctx.globalAlpha = 0.30;
   }
 
-  const W = 62, H = 72;
+  // ── Palette ──
+  const SKIN       = '#FFDB58';   // Homer's classic yellow
+  const SKIN_DARK  = '#E8C020';   // outline / shadow on skin
+  const SKIN_LIT   = '#FFE878';   // highlight on skin
+  const WHITE      = '#FFFFFF';
+  const OUTLINE    = '#1A1A1A';   // thick cartoon outline
+  const SHIRT      = '#FFFFFF';   // white shirt
+  const PANTS      = '#3A5BAD';   // blue pants
+  const PANTS_D    = '#2A4090';
+  const SHOE       = '#2B1E0F';   // dark brown shoes
+  const HAIR       = '#1A1A1A';
+  const STUBBLE    = '#C8B870';
+  const MOUTH_IN   = '#CC2200';
+  const TEETH      = '#FFFFF0';
+  const TONGUE     = '#E8504A';
+  const PUPIL      = '#1A1A1A';
+  const IRIS       = '#6B8CCC';
 
-  // Shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.15)';
+  const lw = (n) => { ctx.lineWidth = n; ctx.strokeStyle = OUTLINE; };
+
+  // ── 1. GROUND SHADOW ──
+  ctx.fillStyle = 'rgba(0,0,0,0.13)';
   ctx.beginPath();
-  ctx.ellipse(W/2, H + 4, 22, 8, 0, 0, Math.PI*2);
+  ctx.ellipse(38, 102, 30, 9, 0, 0, Math.PI*2);
   ctx.fill();
 
-  // ── Shoes ──
-  ctx.fillStyle = '#333';
-  ctx.beginPath(); ctx.ellipse(10, H-2, 14, 7, -0.2, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(W-8, H-2, 14, 7, 0.2, 0, Math.PI*2); ctx.fill();
-
-  // ── Pants (blue) ──
-  ctx.fillStyle = '#4169E1';
+  // ── 2. SHOES ──
+  // Left shoe
+  ctx.fillStyle = SHOE;
   ctx.beginPath();
-  ctx.roundRect(6, H*0.60, W-12, H*0.30, 4);
+  ctx.moveTo(4, 96);
+  ctx.bezierCurveTo(0, 92, -2, 101, 8, 104);
+  ctx.bezierCurveTo(20, 107, 28, 104, 26, 99);
+  ctx.bezierCurveTo(24, 96, 20, 95, 16, 96);
+  ctx.closePath();
+  ctx.fill();
+  lw(1.5); ctx.stroke();
+  // Shoe highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.beginPath();
+  ctx.ellipse(12, 99, 6, 2.5, -0.2, 0, Math.PI*2);
   ctx.fill();
 
-  // Belt
-  ctx.fillStyle = '#222';
-  ctx.fillRect(6, H*0.57, W-12, 6);
-  ctx.fillStyle = '#FFD700';
-  ctx.fillRect(W/2-5, H*0.57, 10, 6);
-
-  // ── Shirt (white) ──
-  ctx.fillStyle = '#F5F5F5';
+  // Right shoe
+  ctx.fillStyle = SHOE;
   ctx.beginPath();
-  ctx.roundRect(8, H*0.30, W-16, H*0.32, [0,0,6,6]);
+  ctx.moveTo(36, 96);
+  ctx.bezierCurveTo(32, 93, 30, 101, 40, 104);
+  ctx.bezierCurveTo(52, 107, 60, 103, 58, 98);
+  ctx.bezierCurveTo(56, 95, 52, 94, 48, 96);
+  ctx.closePath();
   ctx.fill();
+  lw(1.5); ctx.stroke();
 
-  // ── Body / Belly (skin) ──
-  ctx.fillStyle = '#FED46A';
+  // ── 3. LEGS / PANTS ──
+  // Left leg
+  ctx.fillStyle = PANTS;
   ctx.beginPath();
-  ctx.ellipse(W/2, H*0.42, 22, 24, 0, 0, Math.PI*2);
+  ctx.roundRect(8, 74, 18, 26, [4,4,0,0]);
   ctx.fill();
-  // Belly outline
-  ctx.strokeStyle = '#D4A020';
-  ctx.lineWidth = 1.5;
+  lw(1.5); ctx.stroke();
+  // Pant crease
+  ctx.strokeStyle = PANTS_D; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(17, 76); ctx.lineTo(17, 98); ctx.stroke();
+
+  // Right leg
+  ctx.fillStyle = PANTS;
   ctx.beginPath();
-  ctx.ellipse(W/2, H*0.44, 22, 24, 0, 0, Math.PI*2);
-  ctx.stroke();
+  ctx.roundRect(34, 74, 18, 26, [4,4,0,0]);
+  ctx.fill();
+  ctx.strokeStyle = OUTLINE; lw(1.5); ctx.stroke();
+  ctx.strokeStyle = PANTS_D; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(43, 76); ctx.lineTo(43, 98); ctx.stroke();
+
+  // ── 4. BODY TORSO ──
+  // Shirt base (rounded big belly)
+  ctx.fillStyle = SHIRT;
+  ctx.beginPath();
+  ctx.moveTo(10, 44);
+  ctx.bezierCurveTo(4, 44, 2, 52, 4, 62);
+  ctx.bezierCurveTo(5, 70, 8, 76, 12, 78);
+  ctx.lineTo(52, 78);
+  ctx.bezierCurveTo(56, 76, 59, 70, 60, 62);
+  ctx.bezierCurveTo(62, 52, 60, 44, 54, 44);
+  ctx.closePath();
+  ctx.fill();
+  lw(2); ctx.stroke();
+
+  // Belly (skin bulge peeking under shirt)
+  ctx.fillStyle = SKIN;
+  ctx.beginPath();
+  ctx.ellipse(32, 72, 18, 9, 0, 0, Math.PI*2);
+  ctx.fill();
+  lw(1.5); ctx.stroke();
 
   // Navel
-  ctx.fillStyle = '#D4A020';
+  ctx.fillStyle = SKIN_DARK;
   ctx.beginPath();
-  ctx.arc(W/2, H*0.54, 3, 0, Math.PI*2);
+  ctx.arc(32, 72, 2.5, 0, Math.PI*2);
   ctx.fill();
 
-  // ── Arms ──
-  ctx.fillStyle = '#FED46A';
-  // Left arm
+  // Shirt collar V-neck
+  ctx.fillStyle = SKIN;
   ctx.beginPath();
-  ctx.ellipse(4, H*0.40, 7, 16, -0.3, 0, Math.PI*2);
+  ctx.moveTo(26, 44);
+  ctx.lineTo(32, 52);
+  ctx.lineTo(38, 44);
+  ctx.closePath();
   ctx.fill();
-  // Left hand (mitten shape)
+  lw(1.5); ctx.stroke();
+
+  // Belt
+  ctx.fillStyle = '#1A1A1A';
   ctx.beginPath();
-  ctx.ellipse(2, H*0.56, 9, 8, 0.2, 0, Math.PI*2);
+  ctx.roundRect(10, 74, 44, 6, 2);
   ctx.fill();
-  // Right arm (raised slightly)
+  // Buckle
+  ctx.fillStyle = '#C8A830';
   ctx.beginPath();
-  ctx.ellipse(W-4, H*0.38, 7, 16, 0.3, 0, Math.PI*2);
+  ctx.roundRect(27, 74, 10, 6, 1);
   ctx.fill();
+  ctx.strokeStyle = '#8A6000'; ctx.lineWidth = 1;
+  ctx.strokeRect(27, 74, 10, 6);
+
+  // ── 5. LEFT ARM (relaxed, hangs down) ──
+  ctx.fillStyle = SKIN;
+  // Upper arm
+  ctx.beginPath();
+  ctx.moveTo(10, 46);
+  ctx.bezierCurveTo(2, 48, -1, 58, 2, 66);
+  ctx.bezierCurveTo(4, 70, 8, 71, 10, 68);
+  ctx.bezierCurveTo(12, 64, 10, 54, 12, 48);
+  ctx.closePath();
+  ctx.fill();
+  lw(1.5); ctx.stroke();
+  // Left hand (4-finger cartoon mitten)
+  ctx.fillStyle = SKIN;
+  ctx.beginPath();
+  ctx.ellipse(5, 73, 10, 8, 0.3, 0, Math.PI*2);
+  ctx.fill();
+  lw(1.5); ctx.stroke();
+  // Finger lines
+  ctx.strokeStyle = SKIN_DARK; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(-1, 70); ctx.lineTo(-2, 76); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(4, 68);  ctx.lineTo(3, 75);  ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(9, 69);  ctx.lineTo(9, 76);  ctx.stroke();
+
+  // ── 6. RIGHT ARM (slightly raised, excited pose) ──
+  ctx.fillStyle = SKIN;
+  ctx.beginPath();
+  ctx.moveTo(54, 46);
+  ctx.bezierCurveTo(62, 44, 66, 52, 64, 62);
+  ctx.bezierCurveTo(63, 67, 59, 70, 57, 68);
+  ctx.bezierCurveTo(54, 64, 56, 52, 52, 48);
+  ctx.closePath();
+  ctx.fill();
+  lw(1.5); ctx.stroke();
   // Right hand
+  ctx.fillStyle = SKIN;
   ctx.beginPath();
-  ctx.ellipse(W-2, H*0.54, 9, 8, -0.2, 0, Math.PI*2);
+  ctx.ellipse(63, 68, 10, 8, -0.3, 0, Math.PI*2);
+  ctx.fill();
+  lw(1.5); ctx.stroke();
+  // Finger lines
+  ctx.strokeStyle = SKIN_DARK; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(57, 66); ctx.lineTo(56, 72); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(62, 65); ctx.lineTo(62, 71); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(67, 66); ctx.lineTo(68, 72); ctx.stroke();
+
+  // ── 7. NECK ──
+  ctx.fillStyle = SKIN;
+  ctx.beginPath();
+  ctx.roundRect(25, 32, 16, 14, 3);
+  ctx.fill();
+  lw(1.5); ctx.stroke();
+
+  // ── 8. HEAD (big oval, tilted slightly right) ──
+  ctx.fillStyle = SKIN;
+  ctx.beginPath();
+  ctx.ellipse(33, 18, 24, 22, 0.05, 0, Math.PI*2);
+  ctx.fill();
+  lw(2.5); ctx.stroke();
+
+  // Head highlight (subtle)
+  ctx.fillStyle = SKIN_LIT;
+  ctx.beginPath();
+  ctx.ellipse(26, 10, 10, 7, -0.4, 0, Math.PI*2);
   ctx.fill();
 
-  // ── Head ──
-  ctx.fillStyle = '#FED46A';
+  // ── 9. EAR (right side) ──
+  ctx.fillStyle = SKIN;
   ctx.beginPath();
-  ctx.ellipse(W/2, H*0.20, 22, 21, 0, 0, Math.PI*2);
+  ctx.ellipse(56, 19, 7, 9, 0.1, 0, Math.PI*2);
   ctx.fill();
-  ctx.strokeStyle = '#D4A020';
-  ctx.lineWidth = 1.5;
+  lw(2); ctx.stroke();
+  // Inner ear
+  ctx.strokeStyle = SKIN_DARK; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(56, 19, 4, -0.8, 0.8);
   ctx.stroke();
 
-  // ── Ear ──
-  ctx.fillStyle = '#FED46A';
-  ctx.beginPath();
-  ctx.arc(W-2, H*0.20, 7, 0, Math.PI*2);
-  ctx.fill();
-  ctx.strokeStyle = '#D4A020'; ctx.lineWidth = 1;
-  ctx.stroke();
+  // ── 10. EYES ──
+  // Eye whites
+  ctx.fillStyle = WHITE;
+  ctx.beginPath(); ctx.ellipse(22, 16, 8, 9, -0.05, 0, Math.PI*2); ctx.fill();
+  lw(2); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(40, 15, 8, 9, 0.05, 0, Math.PI*2); ctx.fill();
+  lw(2); ctx.stroke();
 
-  // ── Eyes ──
-  ctx.fillStyle = 'white';
-  ctx.beginPath(); ctx.ellipse(W/2-7, H*0.17, 6, 6.5, 0, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(W/2+5, H*0.17, 6, 6.5, 0, 0, Math.PI*2); ctx.fill();
+  // Iris
+  ctx.fillStyle = IRIS;
+  ctx.beginPath(); ctx.arc(23, 17, 5, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(41, 16, 5, 0, Math.PI*2); ctx.fill();
+
   // Pupils
-  ctx.fillStyle = '#1a1a1a';
-  ctx.beginPath(); ctx.arc(W/2-6, H*0.18, 3.5, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(W/2+6, H*0.18, 3.5, 0, Math.PI*2); ctx.fill();
-  // Shine
-  ctx.fillStyle = 'white';
-  ctx.beginPath(); ctx.arc(W/2-5, H*0.16, 1.5, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(W/2+7, H*0.16, 1.5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = PUPIL;
+  ctx.beginPath(); ctx.arc(23, 17, 3, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(41, 16, 3, 0, Math.PI*2); ctx.fill();
 
-  // ── Eyebrows (heavy) ──
-  ctx.fillStyle = '#4a3000';
+  // Eye shine
+  ctx.fillStyle = WHITE;
+  ctx.beginPath(); ctx.arc(24.5, 15, 1.4, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(42.5, 14, 1.4, 0, Math.PI*2); ctx.fill();
+
+  // Lower eyelid bags (Homer's tired look)
+  ctx.strokeStyle = SKIN_DARK; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.arc(22, 17, 8, 0.1, Math.PI - 0.1); ctx.stroke();
+  ctx.beginPath(); ctx.arc(40, 16, 8, 0.1, Math.PI - 0.1); ctx.stroke();
+
+  // ── 11. EYEBROWS (thick, low & flat - Homer's classic) ──
+  ctx.fillStyle = HAIR;
+  // Left brow – almost touching eyelid
   ctx.beginPath();
-  ctx.roundRect(W/2-13, H*0.10, 11, 4, 2);
+  ctx.moveTo(14, 9);
+  ctx.bezierCurveTo(14, 6, 22, 6, 30, 8);
+  ctx.bezierCurveTo(30, 10, 22, 11, 14, 9);
+  ctx.closePath();
   ctx.fill();
+  // Right brow
   ctx.beginPath();
-  ctx.roundRect(W/2+2, H*0.10, 11, 4, 2);
+  ctx.moveTo(32, 8);
+  ctx.bezierCurveTo(32, 5, 41, 5, 49, 7);
+  ctx.bezierCurveTo(49, 9, 41, 10, 32, 8);
+  ctx.closePath();
   ctx.fill();
 
-  // ── Nose ──
-  ctx.fillStyle = '#E8A040';
+  // ── 12. NOSE (Homer's big bulbous nose) ──
+  ctx.fillStyle = SKIN;
+  // Nose bridge bump
   ctx.beginPath();
-  ctx.ellipse(W/2+10, H*0.22, 6, 5, 0.4, 0, Math.PI*2);
+  ctx.moveTo(31, 16);
+  ctx.bezierCurveTo(29, 18, 27, 22, 28, 26);
+  ctx.bezierCurveTo(29, 30, 34, 33, 40, 31);
+  ctx.bezierCurveTo(46, 29, 49, 24, 46, 20);
+  ctx.bezierCurveTo(44, 17, 40, 18, 38, 20);
+  ctx.bezierCurveTo(36, 22, 34, 22, 33, 20);
+  ctx.closePath();
+  ctx.fill();
+  lw(1.8); ctx.stroke();
+
+  // Nose tip sphere highlight
+  ctx.fillStyle = SKIN_LIT;
+  ctx.beginPath();
+  ctx.arc(38, 25, 4, 0, Math.PI*2);
   ctx.fill();
 
-  // ── Mouth (smile) ──
-  ctx.strokeStyle = '#333';
-  ctx.lineWidth = 2.5;
+  // Nostril
+  ctx.fillStyle = SKIN_DARK;
+  ctx.beginPath(); ctx.ellipse(36, 29, 2.5, 2, 0.3, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(42, 28, 2.5, 2, -0.3, 0, Math.PI*2); ctx.fill();
+
+  // ── 13. MOUTH (open, showing teeth – anticipating donuts) ──
+  // Mouth opening
+  ctx.fillStyle = MOUTH_IN;
   ctx.beginPath();
-  ctx.arc(W/2+2, H*0.26, 8, 0.2, Math.PI - 0.2);
+  ctx.moveTo(24, 32);
+  ctx.bezierCurveTo(24, 28, 29, 26, 33, 26);
+  ctx.bezierCurveTo(37, 26, 44, 28, 44, 32);
+  ctx.bezierCurveTo(44, 37, 40, 40, 33, 40);
+  ctx.bezierCurveTo(27, 40, 24, 37, 24, 32);
+  ctx.closePath();
+  ctx.fill();
+  lw(2); ctx.stroke();
+
+  // Teeth (two top, two bottom - cartoon style)
+  ctx.fillStyle = TEETH;
+  ctx.beginPath(); ctx.roundRect(26, 26, 8, 7, [0,0,3,3]); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(35, 26, 8, 7, [0,0,3,3]); ctx.fill();
+  // Tooth divider
+  ctx.strokeStyle = '#DDD'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(34, 26); ctx.lineTo(34, 33); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(43, 26); ctx.lineTo(43, 33); ctx.stroke();
+
+  // Bottom teeth
+  ctx.fillStyle = TEETH;
+  ctx.beginPath(); ctx.roundRect(27, 34, 7, 5, [3,3,0,0]); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(35, 34, 7, 5, [3,3,0,0]); ctx.fill();
+
+  // Tongue
+  ctx.fillStyle = TONGUE;
+  ctx.beginPath();
+  ctx.ellipse(34, 38, 8, 5, 0, 0, Math.PI*2);
+  ctx.fill();
+  // Tongue groove
+  ctx.strokeStyle = '#C03030'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(34, 34); ctx.lineTo(34, 42); ctx.stroke();
+
+  // ── 14. STUBBLE (Homer's eternal shadow) ──
+  ctx.fillStyle = STUBBLE;
+  // Chin area dots
+  const stubblePts = [
+    [24,35],[27,36],[30,37],[33,37],[36,37],[39,36],[42,35],
+    [25,38],[28,39],[31,40],[34,40],[37,39],[41,38],
+  ];
+  stubblePts.forEach(([sx,sy]) => {
+    ctx.beginPath();
+    ctx.arc(sx, sy, 1.1, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  // ── 15. HAIR (Homer's iconic M-shape / fringe + back bump) ──
+  // Back of head bump
+  ctx.fillStyle = HAIR;
+  ctx.beginPath();
+  ctx.ellipse(13, 8, 8, 10, -0.3, 0, Math.PI*2);
+  ctx.fill();
+
+  // The 2 famous curved hairs on top
+  ctx.strokeStyle = HAIR;
+  ctx.lineWidth   = 3;
+  ctx.lineCap     = 'round';
+
+  // Hair strand 1 (left curl)
+  ctx.beginPath();
+  ctx.moveTo(18, 0);
+  ctx.bezierCurveTo(14, -8, 10, -10, 12, -5);
+  ctx.bezierCurveTo(14, -2, 17, -3, 19, -1);
   ctx.stroke();
 
-  // ── Stubble (5 o'clock) ──
-  ctx.fillStyle = '#C8A060';
-  for (let i = 0; i < 5; i++) {
-    ctx.beginPath();
-    ctx.arc(W/2-4 + i*4, H*0.28, 1.2, 0, Math.PI*2);
-    ctx.fill();
-  }
+  // Hair strand 2 (right curl, the iconic one)
+  ctx.beginPath();
+  ctx.moveTo(26, -2);
+  ctx.bezierCurveTo(24, -10, 20, -13, 23, -8);
+  ctx.bezierCurveTo(25, -5, 28, -6, 27, -2);
+  ctx.stroke();
 
-  // ── Hair (5 hairs) ──
-  ctx.strokeStyle = '#333';
-  ctx.lineWidth = 2.5;
-  ctx.lineCap = 'round';
-  const hairBase = [W/2-6, W/2-2, W/2+2, W/2+6, W/2+10];
-  hairBase.forEach((hx, i) => {
-    ctx.beginPath();
-    ctx.moveTo(hx, H*0.02);
-    ctx.quadraticCurveTo(hx + (i-2)*3, H*0.02 - 10, hx + (i-2)*2, H*0.02 - 18);
-    ctx.stroke();
-  });
+  // Hair base band across forehead
+  ctx.fillStyle = HAIR;
+  ctx.beginPath();
+  ctx.moveTo(10, 4);
+  ctx.bezierCurveTo(10, -1, 16, -2, 20, 1);
+  ctx.bezierCurveTo(22, 3, 26, 3, 28, 1);
+  ctx.bezierCurveTo(30, -1, 14, -3, 10, 4);
+  ctx.closePath();
+  ctx.fill();
+
+  // ── 16. EARS (left, barely visible) ──
+  ctx.fillStyle = SKIN;
+  ctx.beginPath();
+  ctx.ellipse(10, 21, 5, 7, -0.1, 0, Math.PI*2);
+  ctx.fill();
+  lw(1.5); ctx.stroke();
 
   ctx.restore();
 }
@@ -886,7 +1109,7 @@ function update() {
   if (nearest && Math.random() < 0.15) {
     drools.push({
       x: homer.x + 60,
-      y: homer.y + 52,
+      y: homer.y + 75,
       vy: 1.5 + Math.random(),
       alpha: 0.9,
       r: 3 + Math.random() * 2,
